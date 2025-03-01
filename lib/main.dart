@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'stats_page.dart';
+import 'session.dart';
+import 'about_us.dart';
 
 void main() {
   runApp(const MyApp());
@@ -8,36 +11,92 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
+  // This widget is the root of the application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Baldur',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
+        // Theme of the application.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Baldur'),
     );
   }
 }
 
+class AnimatedRoundButton extends StatefulWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  const AnimatedRoundButton({
+    super.key,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  @override
+  _AnimatedRoundButtonState createState() => _AnimatedRoundButtonState();
+}
+
+class _AnimatedRoundButtonState extends State<AnimatedRoundButton> {
+  Color _buttonColor = Colors.blue[600]!;
+  double _scale = 1.0; // Default scale
+
+  void _onTapDown(TapDownDetails details) {
+    setState(() {
+      _buttonColor = Colors.blue[800]!;
+      _scale = 0.9;
+    });
+  }
+
+  void _onTapUp(TapUpDetails details) {
+    setState(() {
+      _buttonColor = Colors.blue[600]!;
+      _scale = 1.0; // Restore original size
+    });
+    widget.onPressed();
+  }
+
+  void _onTapCancel() {
+    setState(() {
+      _buttonColor = Colors.blue[600]!;
+      _scale = 1.0; // Restore original size if tap is canceled
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: _onTapDown,
+      onTapUp: _onTapUp,
+      onTapCancel: _onTapCancel,
+      child: Transform.scale(
+        scale: _scale, // Smooth shrinking effect
+        child: Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: _buttonColor,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 4,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: Icon(widget.icon, color: Colors.white, size: 30),
+        ),
+      ),
+    );
+  }
+}
+
+// Configuration for the state
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
@@ -45,8 +104,7 @@ class MyHomePage extends StatefulWidget {
   // that it has a State object (defined below) that contains fields that affect
   // how it looks.
 
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
+  // Holds the values (title) provided by the parent (App widget) and
   // used by the build method of the State. Fields in a Widget subclass are
   // always marked "final".
 
@@ -57,10 +115,13 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  bool isOn = false;
+  bool isOn = false, firstTime = true;
   Timer? timer;
   int currTime = 0;
-  bool firstTime = true;
+  double _scale = 1.0;
+  int debrisCount = 0;
+  int _selectedIndex = 0;
+  List<Session> sessionHistory = []; // Store multiple sessions
 
   void _startStopwatch() {
     setState(() {
@@ -73,13 +134,15 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void _toggleTime() {
+  void _toggleMode() {
     setState(() {
       isOn = !isOn;  // Toggle the state
       if (isOn) {
         _startStopwatch();  // Start stopwatch when turned on
       } else {
         timer?.cancel();   // Stop stopwatch when turned off
+        sessionHistory.add(Session(duration: currTime, debrisCount: debrisCount));
+        debrisCount = 0;  // Reset debris count when turned off
       }
     });
   }
@@ -97,134 +160,232 @@ class _MyHomePageState extends State<MyHomePage> {
       return "Current Session: \n${_displayTime(currTime)}";
     } else if (firstTime && !isOn) {
       firstTime = !firstTime;
-      return "";
+      return "No Session Running";
     }
     else {
       return "Last Session: \n${_displayTime(currTime)}";
     }
   }
 
-  Widget _buildRoundButton(IconData icon, Color color, VoidCallback onPressed) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: 60,  // Adjust size
-        height: 60,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: color,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 4,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-        child: Icon(icon, color: Colors.white, size: 30),
-      ),
+  String _getDebrisData() {
+    return isOn ? "Debris removed: $debrisCount" : "";
+  }
+
+  void _onTapDown(TapDownDetails details) {
+    setState(() {
+      _scale = 0.9;
+    });
+  }
+
+  void _onTapUp(TapUpDetails details) {
+    setState(() {
+      _scale = 1.0; // Restore original size
+    });
+    _toggleMode();
+  }
+
+  void _onTapCancel() {
+    setState(() {
+      _scale = 1.0; // Restore original size if tap is canceled
+    });
+  }
+
+  void _showDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        double value = 50; // Default value
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text("Adjust Scanning Range"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min, // make window small
+                children: [
+                  Slider(
+                    value: value,
+                    min: 0,
+                    max: 100,
+                    divisions: 20,
+                    label: value.round().toString(),
+                    onChanged: (double newValue) {
+                      setState(() {
+                        value = newValue;
+                      });
+                    },
+                  ),
+                  Text("Current Range: ${value.round()}"),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text("Close"),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
+  }
+
+  void _onItemTapped(int index) {
+    if (index == 1) { // If "Stats" tab is clicked, navigate to StatsPage
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => StatsPage(sessions: sessionHistory)),
+      );
+    }
+    else if (index == 2) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => AboutUs()),
+      );
+    }
+    else {
+      setState(() {
+        _selectedIndex = index;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     Color outerBorderColor = isOn ? Colors.blue : Colors.grey;
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    // Rerun every time setState is called
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
+        // Take value from MyHomePage object that was created by App.build() to set appbar title
         title: Text(widget.title),
       ),
+      // Layout widget that takes a single child and positions it in the middle of the parent.
       body: Center(
-
-        // Center is a layout widget. It takes a sngle child and positions it
-        // in the middle of the parent.
+        // Layout widget, takes a list of children and arranges them vertically
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
+          // Center the children vertically
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(
+
+            Text( // Display Running Time
               _getTime(),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 50),
-            GestureDetector(
-              onTap: _toggleTime,
-              child: Container(
-                padding: EdgeInsets.all(4),  // Adjust this value to control the outer spacing
-                decoration: BoxDecoration( //OUTER THICKER CIRCLE
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: outerBorderColor,  // Use the dynamic color for the outer border
-                    width: 10,  // Width for the outer thicker circle
-                  ),
-                ),
-                child: Container(
-                  padding: EdgeInsets.all(20),  // Adjust this value to control the spacing around the image
+
+            SizedBox(height: 50), // Spacing between text and main control button
+            // Center Button (Main Control)
+            AnimatedScale(
+              scale: _scale,
+              duration: Duration(milliseconds: 100),
+              child: GestureDetector(
+                // Functions for button tap
+                onTapDown: _onTapDown,
+                onTapUp: _onTapUp,
+                onTapCancel: _onTapCancel,
+
+                child: Container( // Outer Thicker Circle
+                  padding: EdgeInsets.all(4),  // Control outer spacing
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Colors.blueAccent,  // Static color for the inner circle
-                      width: 3,  // Static thickness for the inner circle
+                      color: outerBorderColor,  // Dynamic color for outer border
+                      width: 10,  // Width for outer thicker circle
                     ),
                   ),
-                  child: Image.asset(
-                    'images/clawPic.png',
-                    width: 220,
-                    height: 210,
-                    fit: BoxFit.cover,
+
+                  child: Container( // Inner Circle
+                    padding: EdgeInsets.all(20),  // Control the spacing around the image
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.blueAccent,  // Static color for inner circle
+                        width: 3,  // Static thickness for inner circle
+                      ),
+                    ),
+
+                    child: Image.asset( // Boulder Image
+                      'images/clawPic.png',
+                      width: 220,
+                      height: 210,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
               ),
             ),
-            SizedBox(height: 50),
 
-            Row(
+            SizedBox(height: 50), // Spacing between main control and side control
+
+            Row( // Side Control Buttons
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildRoundButton(Icons.alarm, Colors.blue, () {
-                }),
+                AnimatedRoundButton(
+                  icon: Icons.alarm,
+                  onPressed: () {
+                  },
+                ),
+
                 SizedBox(width: 40),  // Space between buttons
-                _buildRoundButton(Icons.radar, Colors.blue, () {
-                }),
+
+                AnimatedRoundButton(
+                  icon: Icons.radar,
+                  onPressed: () {
+                    _showDialog(context);
+                  },
+                ),
+
                 SizedBox(width: 40),  // Space between buttons
-                _buildRoundButton(Icons.restore_from_trash, Colors.blue, () {
-                }),
+
+                AnimatedRoundButton(
+                  icon: Icons.restore_from_trash,
+                  onPressed: () {
+                    setState(() {
+                      if (isOn) {
+                        debrisCount++;
+                      }
+                    });
+                  },
+                ),
               ],
             ),
-            SizedBox(height: 50),
-            Text(
-              "Debris removed: ",
+
+            SizedBox(height: 50), // Spacing between side control and data text
+
+            Text( // Display Data
+              _getDebrisData(),
+              // "Debris removed: $debrisCount",
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
           ],
         ),
       ),
-     // This trailing comma makes auto-formatting nicer for build methods.
+
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: "Home",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bar_chart),
+            label: "Stats",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.people),
+            label: "About Us",
+          ),
+        ],
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
+        showUnselectedLabels: true,
+      ),
     );
 
   }
