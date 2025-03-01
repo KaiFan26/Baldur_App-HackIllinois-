@@ -318,7 +318,10 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         // Take value from MyHomePage object that was created by App.build() to set appbar title
-        title: Text(widget.title),
+        title: Text("ᛞ Baldur ᛞ", style: TextStyle(fontWeight: FontWeight.bold),),
+        centerTitle: true,
+
+
       ),
       // Layout widget that takes a single child and positions it in the middle of the parent.
       body: Center(

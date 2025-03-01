@@ -9,7 +9,11 @@ class StatsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("📊 Stats Page")),
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text(" 📊 Stats Page"),
+        centerTitle: true,
+      ),
       body: sessions.isEmpty
         ? Center(child: Text("No sessions recorded", style: TextStyle(fontSize: 20)))
         : Scrollbar( // <-- Add this
