@@ -3,6 +3,7 @@ import 'dart:async';
 import 'stats_page.dart';
 import 'session.dart';
 import 'about_us.dart';
+import 'package:claw_app/timer.dart';
 
 void main() {
   runApp(const MyApp());
@@ -158,7 +159,8 @@ class _MyHomePageState extends State<MyHomePage> {
   String _getTime() {
     if (isOn) {
       return "Current Session: \n${_displayTime(currTime)}";
-    } else if (firstTime && !isOn) {
+    }
+    else if (firstTime && !isOn) {
       firstTime = !firstTime;
       return "No Session Running";
     }
@@ -232,6 +234,28 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  Widget _buildRoundButton(IconData icon, Color color, VoidCallback onPressed) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        width: 60,  // Adjust size
+        height: 60,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: color,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 4,
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: Icon(icon, color: Colors.white, size: 30),
+      ),
+    );
+  }
+
   void _onItemTapped(int index) {
     if (index == 1) { // If "Stats" tab is clicked, navigate to StatsPage
       Navigator.push(
@@ -251,6 +275,40 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     }
   }
+
+
+  Widget _toTimePage(IconData icon, Color color, BuildContext context) {
+
+    return GestureDetector(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const MyTimePage(title: 'Timer Page')),
+      );
+    },
+
+      child: Container(
+        width: 60,  // Adjust size
+        height: 60,
+        decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+        boxShadow: [
+        BoxShadow(
+        color: Colors.black26,
+        blurRadius: 4,
+        spreadRadius: 2,
+        ),
+        ],
+        ),
+        child: Icon(icon, color: Colors.white, size: 30),
+        ),
+    );
+
+  }
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -323,12 +381,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Row( // Side Control Buttons
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                AnimatedRoundButton(
-                  icon: Icons.alarm,
-                  onPressed: () {
-                  },
-                ),
-
+                _toTimePage(Icons.timer, Colors.blue, context),
                 SizedBox(width: 40),  // Space between buttons
 
                 AnimatedRoundButton(
