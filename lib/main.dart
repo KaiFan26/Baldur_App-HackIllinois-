@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:claw_app/timer.dart';
 
 void main() {
   runApp(const MyApp());
@@ -33,7 +34,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Baldur'),
     );
   }
 }
@@ -57,6 +58,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+
   bool isOn = false;
   Timer? timer;
   int currTime = 0;
@@ -74,6 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _toggleTime() {
+
     setState(() {
       isOn = !isOn;  // Toggle the state
       if (isOn) {
@@ -82,30 +85,39 @@ class _MyHomePageState extends State<MyHomePage> {
         timer?.cancel();   // Stop stopwatch when turned off
       }
     });
+
   }
 
   String _displayTime(int seconds) {
+
     int hours = seconds ~/ 3600;
     int minutes = seconds ~/ 60;
     int remainingSeconds = seconds % 60;
     return "${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString()
         .padLeft(2, '0')}";
+
   }
 
   String _getTime() {
+
     if (isOn) {
       return "Current Session: \n${_displayTime(currTime)}";
-    } else if (firstTime && !isOn) {
+    }
+    else if (firstTime && !isOn) {
       firstTime = !firstTime;
       return "";
     }
+
     else {
       return "Last Session: \n${_displayTime(currTime)}";
     }
+
   }
 
   Widget _buildRoundButton(IconData icon, Color color, VoidCallback onPressed) {
+
     return GestureDetector(
+
       onTap: onPressed,
       child: Container(
         width: 60,  // Adjust size
@@ -125,6 +137,40 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+
+
+  Widget _toTimePage(IconData icon, Color color, BuildContext context) {
+
+    return GestureDetector(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const MyTimePage(title: 'Timer Page')),
+      );
+    }, 
+      
+      child: Container(
+        width: 60,  // Adjust size
+        height: 60,
+        decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+        boxShadow: [
+        BoxShadow(
+        color: Colors.black26,
+        blurRadius: 4,
+        spreadRadius: 2,
+        ),
+        ],
+        ),
+        child: Icon(icon, color: Colors.white, size: 30),
+        ),
+    );
+
+  }
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -205,8 +251,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildRoundButton(Icons.alarm, Colors.blue, () {
-                }),
+                _toTimePage(Icons.timer, Colors.blue, context),
                 SizedBox(width: 40),  // Space between buttons
                 _buildRoundButton(Icons.radar, Colors.blue, () {
                 }),
