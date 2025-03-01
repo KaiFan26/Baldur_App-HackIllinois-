@@ -4,7 +4,11 @@ class AboutUs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("📖 About Us")),
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          title: Text("About Us"),
+          centerTitle: true,
+        ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
