@@ -291,24 +291,21 @@ class _MyHomePageState extends State<MyHomePage> {
         width: 60,  // Adjust size
         height: 60,
         decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color,
-        boxShadow: [
-        BoxShadow(
-        color: Colors.black26,
-        blurRadius: 4,
-        spreadRadius: 2,
+          shape: BoxShape.circle,
+          color: color,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 4,
+              spreadRadius: 2,
+            ),
+          ],
         ),
-        ],
-        ),
-        child: Icon(icon, color: Colors.white, size: 30),
-        ),
+      child: Icon(icon, color: Colors.white, size: 30),
+      ),
     );
 
   }
-
-
-
 
   @override
   Widget build(BuildContext context) {
