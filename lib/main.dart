@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 void main() {
   runApp(const MyApp());
@@ -57,7 +58,73 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   bool isOn = false;
-  //int _counter = 0;
+  Timer? timer;
+  int currTime = 0;
+  bool firstTime = true;
+
+  void _startStopwatch() {
+    setState(() {
+      currTime = 0; // Reset elapsed time
+    });
+    timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      setState(() {
+        currTime++; // Increment every second
+      });
+    });
+  }
+
+  void _toggleTime() {
+    setState(() {
+      isOn = !isOn;  // Toggle the state
+      if (isOn) {
+        _startStopwatch();  // Start stopwatch when turned on
+      } else {
+        timer?.cancel();   // Stop stopwatch when turned off
+      }
+    });
+  }
+
+  String _displayTime(int seconds) {
+    int hours = seconds ~/ 3600;
+    int minutes = seconds ~/ 60;
+    int remainingSeconds = seconds % 60;
+    return "${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString()
+        .padLeft(2, '0')}";
+  }
+
+  String _getTime() {
+    if (isOn) {
+      return "Current Session: \n${_displayTime(currTime)}";
+    } else if (firstTime && !isOn) {
+      firstTime = !firstTime;
+      return "";
+    }
+    else {
+      return "Last Session: \n${_displayTime(currTime)}";
+    }
+  }
+
+  Widget _buildRoundButton(IconData icon, Color color, VoidCallback onPressed) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        width: 60,  // Adjust size
+        height: 60,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: color,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 4,
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: Icon(icon, color: Colors.white, size: 30),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -98,12 +165,14 @@ class _MyHomePageState extends State<MyHomePage> {
           // wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            Text(
+              _getTime(),
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 50),
             GestureDetector(
-              onTap: () {
-                setState(() {
-                  isOn = !isOn;  // Toggle the state between on and off
-                });
-              },
+              onTap: _toggleTime,
               child: Container(
                 padding: EdgeInsets.all(4),  // Adjust this value to control the outer spacing
                 decoration: BoxDecoration( //OUTER THICKER CIRCLE
@@ -130,6 +199,27 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
               ),
+            ),
+            SizedBox(height: 50),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildRoundButton(Icons.alarm, Colors.blue, () {
+                }),
+                SizedBox(width: 40),  // Space between buttons
+                _buildRoundButton(Icons.radar, Colors.blue, () {
+                }),
+                SizedBox(width: 40),  // Space between buttons
+                _buildRoundButton(Icons.restore_from_trash, Colors.blue, () {
+                }),
+              ],
+            ),
+            SizedBox(height: 50),
+            Text(
+              "Debris removed: ",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
           ],
         ),
