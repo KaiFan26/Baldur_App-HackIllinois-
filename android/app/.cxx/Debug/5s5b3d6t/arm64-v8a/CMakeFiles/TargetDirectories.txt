@@ -1,0 +1,2 @@
+C:/Users/trkho/StudioProjects/hackIllinois/android/app/.cxx/Debug/5s5b3d6t/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/trkho/StudioProjects/hackIllinois/android/app/.cxx/Debug/5s5b3d6t/arm64-v8a/CMakeFiles/rebuild_cache.dir
