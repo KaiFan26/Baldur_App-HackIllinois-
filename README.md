@@ -1,16 +1,27 @@
-# claw_app
+# Autonomous Debris Detection and Removal System 🚜🔍
 
-A new Flutter project.
+## Overview
 
-## Getting Started
+During crop harvesting, debris such as rocks, branches, and metal objects can cause severe damage to farming equipment, leading to costly repairs and delays. 
+This project aims to provide an autonomous, AI-powered solution to detect and remove debris from fields using a Raspberry Pi-controlled vehicle equipped with a robotic claw.
 
-This project is a starting point for a Flutter application.
+## Features
 
-A few resources to get you started if this is your first Flutter project:
+✅ Debris Identification – Uses sensors and cameras to differentiate between crops and various debris types.
+✅ Autonomous Navigation – The vehicle moves through the field, scanning and locating obstacles in real time.
+✅ Robotic Claw Mechanism – The vehicle moves toward the debris, using a robotic arm to pick it up, then removes it from designated areas.
+✅ User-Controlled App – Farmers can monitor and adjust operations via an easy-to-use mobile application.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Technology Stack
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Hardware: Raspberry Pi, Camera Module, LIDAR/Ultrasonic Sensors, Motorized Claw
+- Software: Python, OpenCV, Flutter, Flask, Dart,
+- Connectivity: WiFi/Bluetooth for remote monitoring
+- Tools: Android Studio, VS Code
+
+## Contributors
+
+- Anupam Sai Sistla: Hardware/Kit
+- Kaito Sekiya: Hardware/Kit
+- Nathan Trinh: Software/App
+- Hanel Vujic: Software/App
