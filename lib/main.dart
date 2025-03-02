@@ -388,6 +388,17 @@ class MyHomePageState extends State<MyHomePage> {
               ],
             ),
 
+            Row(
+              children: [
+                SizedBox(width: 85),
+                Text("Timer"),
+                SizedBox(width: 62),
+                Text("Range"),
+                SizedBox(width: 60),
+                Text("Debris"),
+              ],
+            ),
+
             SizedBox(height: 50), // Spacing between side control and data text
 
             Text( // Display Data
