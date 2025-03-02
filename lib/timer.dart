@@ -3,7 +3,6 @@ import 'package:claw_app/seconds.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'hours.dart';
-import 'tile.dart';
 
 class MyTimePage extends StatefulWidget {
   const MyTimePage({super.key, required this.title});
@@ -18,30 +17,30 @@ class _MyTimePageState extends State<MyTimePage> {
   int selectedHours = 0;
   int selectedMinutes = 0;
   int selectedSeconds = 0;
-  Timer? _timer;
+  Timer? timer;
   bool isRunning = false;
   int remainingSeconds = 0;
 
-  void _startTimer() {
+  void setTimer() {
     setState(() {
       isRunning = true;
       remainingSeconds = (selectedHours * 3600) + (selectedMinutes * 60) + selectedSeconds;
     });
 
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    timer = Timer.periodic(Duration(seconds: 1), (timer) {
       if (remainingSeconds > 0) {
         setState(() {
           remainingSeconds--;
         });
       } else {
-        _stopTimer();
+        stopTimer();
       }
     });
   }
 
-  void _stopTimer() {
-    if (_timer != null) {
-      _timer!.cancel();
+  void stopTimer() {
+    if (timer != null) {
+      timer!.cancel();
     }
     setState(() {
       isRunning = false;

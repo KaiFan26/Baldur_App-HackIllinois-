@@ -11,7 +11,7 @@ class StatsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(" 📊 Stats Page"),
+        title: Text(" 📊 Stats Page", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
       body: sessions.isEmpty
@@ -26,7 +26,7 @@ class StatsPage extends StatelessWidget {
             Session session = sessions[index];
             return ListTile(
               leading: Icon(Icons.timer),
-              title: Text("Session ${index + 1}: ${session.duration} sec"),
+              title: Text("Session ${index + 1}: ${session.displayTime(session.duration)}"),
               subtitle: Text(
                   "Debris Collected: ${session.debrisCount}"),
             );

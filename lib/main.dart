@@ -1,12 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'stats_page.dart';
 import 'session.dart';
 import 'about_us.dart';
-import 'package:claw_app/timer.dart';
-import 'package:claw_app/minutes.dart';
-import 'package:claw_app/seconds.dart';
-import 'package:claw_app/hours.dart';
+import 'button.dart';
 
 void main() {
   runApp(const MyApp());
@@ -31,94 +29,23 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class AnimatedRoundButton extends StatefulWidget {
-  final IconData icon;
-  final VoidCallback onPressed;
+// Configuration for the state.
+// Home page of the application.
+// It is stateful (has a State object containing fields that affect how it looks)
 
-  const AnimatedRoundButton({
-    super.key,
-    required this.icon,
-    required this.onPressed,
-  });
-
-  @override
-  _AnimatedRoundButtonState createState() => _AnimatedRoundButtonState();
-}
-
-class _AnimatedRoundButtonState extends State<AnimatedRoundButton> {
-  Color _buttonColor = Colors.blue[600]!;
-  double _scale = 1.0; // Default scale
-
-  void _onTapDown(TapDownDetails details) {
-    setState(() {
-      _buttonColor = Colors.blue[800]!;
-      _scale = 0.9;
-    });
-  }
-
-  void _onTapUp(TapUpDetails details) {
-    setState(() {
-      _buttonColor = Colors.blue[600]!;
-      _scale = 1.0; // Restore original size
-    });
-    widget.onPressed();
-  }
-
-  void _onTapCancel() {
-    setState(() {
-      _buttonColor = Colors.blue[600]!;
-      _scale = 1.0; // Restore original size if tap is canceled
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: _onTapDown,
-      onTapUp: _onTapUp,
-      onTapCancel: _onTapCancel,
-      child: Transform.scale(
-        scale: _scale, // Smooth shrinking effect
-        child: Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: _buttonColor,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: 4,
-                spreadRadius: 2,
-              ),
-            ],
-          ),
-          child: Icon(widget.icon, color: Colors.white, size: 30),
-        ),
-      ),
-    );
-  }
-}
-
-// Configuration for the state
+// Holds the values (title) provided by the parent (App widget) and
+// used by the build method of the State. Fields in a Widget subclass are
+// always marked "final".
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // Holds the values (title) provided by the parent (App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
 
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<MyHomePage> createState() => MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class MyHomePageState extends State<MyHomePage> {
   bool isOn = false, firstTime = true;
   Timer? timer;
   int currTime = 0;
@@ -127,96 +54,70 @@ class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
   List<Session> sessionHistory = []; // Store multiple sessions
   double rangeValue = 50;
-  FixedExtentScrollController hourController = FixedExtentScrollController();
-  FixedExtentScrollController minuteController = FixedExtentScrollController();
-  FixedExtentScrollController secondController = FixedExtentScrollController();
 
-  void _startStopwatch() {
+  void startStopwatch() {
     setState(() {
       currTime = 0; // Reset elapsed time
     });
+    // Increment every second
     timer = Timer.periodic(Duration(seconds: 1), (timer) {
       setState(() {
-        currTime++; // Increment every second
+        currTime++;
       });
     });
   }
 
-  void _toggleMode() {
+  void toggleMode() {
     setState(() {
       isOn = !isOn;  // Toggle the state
       if (isOn) {
-        _startStopwatch();  // Start stopwatch when turned on
-      } else {
-        timer?.cancel();   // Stop stopwatch when turned off
+        startStopwatch();  // Start stopwatch when turned on
+      }
+      // Stop stopwatch, add session to stats page, and reset debris count
+      else {
+        timer?.cancel();
         sessionHistory.add(Session(duration: currTime, debrisCount: debrisCount));
-        debrisCount = 0;  // Reset debris count when turned off
+        debrisCount = 0;
       }
     });
   }
 
-  String _displayTime(int seconds) {
+  // Format time in HH:MM:SS
+  String displayTime(int seconds) {
     int hours = seconds ~/ 3600;
-    int minutes = seconds ~/ 60;
+    int minutes = (seconds % 3600) ~/ 60;
     int remainingSeconds = seconds % 60;
     return "${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString()
         .padLeft(2, '0')}";
   }
 
-  String _getTime() {
-    if (isOn) {
-      return "Current Session: \n${_displayTime(currTime)}";
-    }
-    else if (firstTime && !isOn) {
-      firstTime = !firstTime;
-      return "No Session Running";
-    }
-    else {
-      return "Last Session: \n${_displayTime(currTime)}";
-    }
+  String getTime() {
+    return isOn ? "Current Session: ${displayTime(currTime)}" : "No Session Running";
   }
 
-  String _getDebrisData() {
+  String getDebrisData() {
     return isOn ? "Debris removed: $debrisCount" : "";
   }
 
-  void _onTapDown(TapDownDetails details) {
+  // Change color and size when the button is pressed
+  void onPressed(TapDownDetails details) {
     setState(() {
       _scale = 0.9;
     });
   }
 
-  void _onTapUp(TapUpDetails details) {
+  // Restore original size and color if the press is released
+  void onReleased(TapUpDetails details) {
     setState(() {
       _scale = 1.0; // Restore original size
     });
-    _toggleMode();
+    toggleMode();
   }
 
-  void _onTapCancel() {
+  // Restore original size and color if the press is canceled
+  void onCancel() {
     setState(() {
-      _scale = 1.0; // Restore original size if tap is canceled
-    });
-  }
-
-  void setTimer() {
-    int hours = hourController.selectedItem;
-    int minutes = minuteController.selectedItem;
-    int seconds = secondController.selectedItem;
-
-    int totalSeconds = hours * 3600 + minutes * 60 + seconds;
-
-    setState(() {
-      currTime = totalSeconds;
-    });
-    timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      setState(() {
-        currTime--;
-      });
-
-      if (currTime <= 0) {
-        timer.cancel();
-      }
+      _scale = 1.0;
     });
   }
 
@@ -224,15 +125,17 @@ class _MyHomePageState extends State<MyHomePage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        double value = rangeValue;
+        double value = rangeValue; // set value to previous set one
+
         return StatefulBuilder(
           builder: (context, setState) {
 
             return AlertDialog(
               title: Text("Adjust Scanning Range"),
               content: Column(
-                mainAxisSize: MainAxisSize.min, // make window small
+                mainAxisSize: MainAxisSize.min, // Make alert window as small as possible
                 children: [
+                  // Slider for adjusting range
                   Slider(
                     value: value,
                     min: 0,
@@ -245,7 +148,6 @@ class _MyHomePageState extends State<MyHomePage> {
                       });
                     },
                   ),
-
                   Text("Current Range: ${value.round()}"),
                 ],
               ),
@@ -265,89 +167,112 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget buildTimeColumn(String label, int childCount, Widget Function(int) builder) {
-    return Expanded(
-      child: Column(
-        children: [
-          // SizedBox(height: 100),
-          Text(label, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)), // Label for each wheel
-          Expanded(
-            child: ListWheelScrollView.useDelegate(
-              itemExtent: 50,
-              perspective: 0.003,
-              diameterRatio: 1.2,
-              physics: FixedExtentScrollPhysics(),
-              childDelegate: ListWheelChildBuilderDelegate(
-                childCount: childCount,
-                builder: (context, index) => builder(index),
-              ),
-            ),
-          ),
-          if (label == "Minute")
-            Padding(
-              padding: const EdgeInsets.only(top: 52), // Add spacing
-              child: ElevatedButton(
-                onPressed: () {
-                  setTimer();
-                  Navigator.pop(context);
-                },
-                child: Text("Set"),
-              ),
-            )
-          else
-            SizedBox(height: 100), // Keep SizedBox for other cases
-        ],
-      ),
-    );
-  }
-
   void timerWindow(BuildContext context) {
+    int selectedHours = 0;
+    int selectedMinutes = 0;
+    int selectedSeconds = 0;
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        double value = 50; // Default value
-
-        return StatefulBuilder(
-          builder: (context, setState) {
-
-            return AlertDialog(
-              title: Text("Select Timer Duration", textAlign: TextAlign.center),
-              content: SizedBox(
-                width: 350, // Adjust width to make it smaller
-                height: 250, // Adjust height to make it smaller
+        return AlertDialog(
+          title: Text("Select Timer Duration"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                height: 200, // Height for the scrollable pickers
                 child: Row(
-                  mainAxisSize: MainAxisSize.min, // make window small
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    buildTimeColumn("Hour", 24, (index) => MyHours(hours: index)),
-                    buildTimeColumn("Minute", 60, (index) => MyMinutes(mins: index)),
-                    buildTimeColumn("Second", 60, (index) => MySeconds(seconds: index)),
+                    // Hours Picker
+                    Expanded(
+                      child: CupertinoPicker(
+                        scrollController: FixedExtentScrollController(initialItem: 0),
+                        itemExtent: 40, // Height of each item
+                        onSelectedItemChanged: (value) {
+                          selectedHours = value;
+                        },
+                        children: List.generate(24, (index) => Text("$index h")),
+                      ),
+                    ),
+
+                    // Minutes Picker
+                    Expanded(
+                      child: CupertinoPicker(
+                        scrollController: FixedExtentScrollController(initialItem: 0),
+                        itemExtent: 40,
+                        onSelectedItemChanged: (value) {
+                          selectedMinutes = value;
+                        },
+                        children: List.generate(60, (index) => Text("$index min")),
+                      ),
+                    ),
+
+                    // Seconds Picker
+                    Expanded(
+                      child: CupertinoPicker(
+                        scrollController: FixedExtentScrollController(initialItem: 0),
+                        itemExtent: 40,
+                        onSelectedItemChanged: (value) {
+                          selectedSeconds = value;
+                        },
+                        children: List.generate(60, (index) => Text("$index sec")),
+                      ),
+                    ),
                   ],
                 ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text("Close"),
-                ),
-              ],
-            );
-          },
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog without saving
+              },
+              child: Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                // Combine selected values into total seconds
+                timer?.cancel();
+                int totalSeconds = (selectedHours * 3600) + (selectedMinutes * 60) + selectedSeconds;
+                currTime = totalSeconds;
+                isOn = true;
+                timer = Timer.periodic(Duration(seconds: 1), (timer) {
+                  if (currTime > 0) {
+                    setState(() {
+                      currTime--;
+                    });
+                  } else {
+                    isOn = false;
+                    setState(() {
+                      timer.cancel();
+                      if (totalSeconds > 0) {
+                        sessionHistory.add(Session(duration: totalSeconds, debrisCount: debrisCount));
+                      }
+                      debrisCount = 0;  // Reset debris count when turned off
+                    });
+                  }
+                });
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text("Confirm"),
+            ),
+          ],
         );
       },
     );
   }
 
-  void _onItemTapped(int index) {
-    if (index == 1) { // If "Stats" tab is clicked, navigate to StatsPage
+  void getPage(int index) {
+    if (index == 1) { // Navigate to Stats
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => StatsPage(sessions: sessionHistory)),
       );
     }
-    else if (index == 2) {
+    else if (index == 2) { // Navigate to About Us
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => AboutUs()),
@@ -362,7 +287,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    Color outerBorderColor = isOn ? Colors.blue : Colors.grey;
     // Rerun every time setState is called
     return Scaffold(
       appBar: AppBar(
@@ -381,7 +305,7 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
 
             Text( // Display Running Time
-              _getTime(),
+              getTime(),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
@@ -393,16 +317,16 @@ class _MyHomePageState extends State<MyHomePage> {
               duration: Duration(milliseconds: 100),
               child: GestureDetector(
                 // Functions for button tap
-                onTapDown: _onTapDown,
-                onTapUp: _onTapUp,
-                onTapCancel: _onTapCancel,
+                onTapDown: onPressed,
+                onTapUp: onReleased,
+                onTapCancel: onCancel,
 
                 child: Container( // Outer Thicker Circle
                   padding: EdgeInsets.all(4),  // Control outer spacing
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: outerBorderColor,  // Dynamic color for outer border
+                      color: isOn ? Colors.blue : Colors.grey,  // Dynamic color for outer border
                       width: 10,  // Width for outer thicker circle
                     ),
                   ),
@@ -437,10 +361,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   icon: Icons.alarm,
                   onPressed: () {
                     timerWindow(context);
-                    // Navigator.push(
-                    //   context,
-                    //   MaterialPageRoute(builder: (context) => const MyTimePage(title: 'Timer Page')),
-                    // );
                   },
                 ),
 
@@ -471,7 +391,7 @@ class _MyHomePageState extends State<MyHomePage> {
             SizedBox(height: 50), // Spacing between side control and data text
 
             Text( // Display Data
-              _getDebrisData(),
+              getDebrisData(),
               // "Debris removed: $debrisCount",
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
@@ -482,7 +402,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
+        onTap: getPage,
         items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
