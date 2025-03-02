@@ -15,6 +15,39 @@ class MyTimePage extends StatefulWidget {
 }
 
 class _MyTimePageState extends State<MyTimePage> {
+  int selectedHours = 0;
+  int selectedMinutes = 0;
+  int selectedSeconds = 0;
+  Timer? _timer;
+  bool isRunning = false;
+  int remainingSeconds = 0;
+
+  void _startTimer() {
+    setState(() {
+      isRunning = true;
+      remainingSeconds = (selectedHours * 3600) + (selectedMinutes * 60) + selectedSeconds;
+    });
+
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (remainingSeconds > 0) {
+        setState(() {
+          remainingSeconds--;
+        });
+      } else {
+        _stopTimer();
+      }
+    });
+  }
+
+  void _stopTimer() {
+    if (_timer != null) {
+      _timer!.cancel();
+    }
+    setState(() {
+      isRunning = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,13 +60,26 @@ class _MyTimePageState extends State<MyTimePage> {
       body: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          buildTimeColumn("Hours", 24, (index) => MyHours(hours: index)),
-          buildTimeColumn("Minutes", 60, (index) => MyMinutes(mins: index)),
-          buildTimeColumn("Seconds", 60, (index) => MySeconds(seconds: index)),
+          buildTimeColumn("Hours", 24, (index) {
+            return GestureDetector(
+              onTap: () => setState(() => selectedHours = index),
+              child: MyHours(hours: index),
+            );
+          }),
+          buildTimeColumn("Minutes", 60, (index) {
+            return GestureDetector(
+              onTap: () => setState(() => selectedMinutes = index),
+              child: MyMinutes(mins: index),
+            );
+          }),
+          buildTimeColumn("Seconds", 60, (index) {
+            return GestureDetector(
+              onTap: () => setState(() => selectedSeconds = index),
+              child: MySeconds(seconds: index),
+            );
+          }),
         ],
       ),
-
-
     );
   }
 
@@ -41,7 +87,8 @@ class _MyTimePageState extends State<MyTimePage> {
     return Expanded(
       child: Column(
         children: [
-          Text(label, style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)), // Label for each wheel
+          SizedBox(height: 250),
+          Text(label, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)), // Label for each wheel
           Expanded(
             child: ListWheelScrollView.useDelegate(
               itemExtent: 50,
@@ -54,6 +101,7 @@ class _MyTimePageState extends State<MyTimePage> {
               ),
             ),
           ),
+          SizedBox(height: 350),
         ],
       ),
 

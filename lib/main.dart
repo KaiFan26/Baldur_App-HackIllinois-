@@ -4,6 +4,9 @@ import 'stats_page.dart';
 import 'session.dart';
 import 'about_us.dart';
 import 'package:claw_app/timer.dart';
+import 'package:claw_app/minutes.dart';
+import 'package:claw_app/seconds.dart';
+import 'package:claw_app/hours.dart';
 
 void main() {
   runApp(const MyApp());
@@ -123,6 +126,10 @@ class _MyHomePageState extends State<MyHomePage> {
   int debrisCount = 0;
   int _selectedIndex = 0;
   List<Session> sessionHistory = []; // Store multiple sessions
+  double rangeValue = 50;
+  FixedExtentScrollController hourController = FixedExtentScrollController();
+  FixedExtentScrollController minuteController = FixedExtentScrollController();
+  FixedExtentScrollController secondController = FixedExtentScrollController();
 
   void _startStopwatch() {
     setState(() {
@@ -192,13 +199,35 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void _showDialog(BuildContext context) {
+  void setTimer() {
+    int hours = hourController.selectedItem;
+    int minutes = minuteController.selectedItem;
+    int seconds = secondController.selectedItem;
+
+    int totalSeconds = hours * 3600 + minutes * 60 + seconds;
+
+    setState(() {
+      currTime = totalSeconds;
+    });
+    timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      setState(() {
+        currTime--;
+      });
+
+      if (currTime <= 0) {
+        timer.cancel();
+      }
+    });
+  }
+
+  void rangeChangeWindow(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        double value = 50; // Default value
+        double value = rangeValue;
         return StatefulBuilder(
           builder: (context, setState) {
+
             return AlertDialog(
               title: Text("Adjust Scanning Range"),
               content: Column(
@@ -216,8 +245,85 @@ class _MyHomePageState extends State<MyHomePage> {
                       });
                     },
                   ),
+
                   Text("Current Range: ${value.round()}"),
                 ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    rangeValue = value;
+                    Navigator.pop(context);
+                  },
+                  child: Text("Close"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget buildTimeColumn(String label, int childCount, Widget Function(int) builder) {
+    return Expanded(
+      child: Column(
+        children: [
+          // SizedBox(height: 100),
+          Text(label, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)), // Label for each wheel
+          Expanded(
+            child: ListWheelScrollView.useDelegate(
+              itemExtent: 50,
+              perspective: 0.003,
+              diameterRatio: 1.2,
+              physics: FixedExtentScrollPhysics(),
+              childDelegate: ListWheelChildBuilderDelegate(
+                childCount: childCount,
+                builder: (context, index) => builder(index),
+              ),
+            ),
+          ),
+          if (label == "Minute")
+            Padding(
+              padding: const EdgeInsets.only(top: 52), // Add spacing
+              child: ElevatedButton(
+                onPressed: () {
+                  setTimer();
+                  Navigator.pop(context);
+                },
+                child: Text("Set"),
+              ),
+            )
+          else
+            SizedBox(height: 100), // Keep SizedBox for other cases
+        ],
+      ),
+    );
+  }
+
+  void timerWindow(BuildContext context) {
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        double value = 50; // Default value
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+
+            return AlertDialog(
+              title: Text("Select Timer Duration", textAlign: TextAlign.center),
+              content: SizedBox(
+                width: 350, // Adjust width to make it smaller
+                height: 250, // Adjust height to make it smaller
+                child: Row(
+                  mainAxisSize: MainAxisSize.min, // make window small
+                  children: [
+                    buildTimeColumn("Hour", 24, (index) => MyHours(hours: index)),
+                    buildTimeColumn("Minute", 60, (index) => MyMinutes(mins: index)),
+                    buildTimeColumn("Second", 60, (index) => MySeconds(seconds: index)),
+                  ],
+                ),
               ),
               actions: [
                 TextButton(
@@ -231,28 +337,6 @@ class _MyHomePageState extends State<MyHomePage> {
           },
         );
       },
-    );
-  }
-
-  Widget _buildRoundButton(IconData icon, Color color, VoidCallback onPressed) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: 60,  // Adjust size
-        height: 60,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: color,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 4,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-        child: Icon(icon, color: Colors.white, size: 30),
-      ),
     );
   }
 
@@ -276,37 +360,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-
-  Widget _toTimePage(IconData icon, Color color, BuildContext context) {
-
-    return GestureDetector(
-    onTap: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const MyTimePage(title: 'Timer Page')),
-      );
-    },
-
-      child: Container(
-        width: 60,  // Adjust size
-        height: 60,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: color,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 4,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-      child: Icon(icon, color: Colors.white, size: 30),
-      ),
-    );
-
-  }
-
   @override
   Widget build(BuildContext context) {
     Color outerBorderColor = isOn ? Colors.blue : Colors.grey;
@@ -317,7 +370,6 @@ class _MyHomePageState extends State<MyHomePage> {
         // Take value from MyHomePage object that was created by App.build() to set appbar title
         title: Text("ᛞ Baldur ᛞ", style: TextStyle(fontWeight: FontWeight.bold),),
         centerTitle: true,
-
 
       ),
       // Layout widget that takes a single child and positions it in the middle of the parent.
@@ -381,13 +433,23 @@ class _MyHomePageState extends State<MyHomePage> {
             Row( // Side Control Buttons
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _toTimePage(Icons.timer, Colors.blue, context),
+                AnimatedRoundButton(
+                  icon: Icons.alarm,
+                  onPressed: () {
+                    timerWindow(context);
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(builder: (context) => const MyTimePage(title: 'Timer Page')),
+                    // );
+                  },
+                ),
+
                 SizedBox(width: 40),  // Space between buttons
 
                 AnimatedRoundButton(
                   icon: Icons.radar,
                   onPressed: () {
-                    _showDialog(context);
+                    rangeChangeWindow(context);
                   },
                 ),
 
@@ -396,11 +458,11 @@ class _MyHomePageState extends State<MyHomePage> {
                 AnimatedRoundButton(
                   icon: Icons.restore_from_trash,
                   onPressed: () {
-                    setState(() {
-                      if (isOn) {
+                    if (isOn) {
+                      setState(() {
                         debrisCount++;
-                      }
-                    });
+                      });
+                    }
                   },
                 ),
               ],
